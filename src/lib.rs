@@ -3,20 +3,32 @@ use std::{collections::HashMap, process::exit, str};
 pub struct Argument {
     name: String,
     description: String,
-    exit_statuses: HashMap<u8, String>,
+    exit_statuses: HashMap<u16, String>,
     epilog: String,
     credits: String,
-    args: (HashMap<String, (String, isize)>, HashMap<char, (String, isize, String)>),
-    help_order: (Vec<String>, Vec<String>)
+    args: (
+        HashMap<String, (String, isize)>,
+        HashMap<char, (String, isize, String)>,
+    ),
+    help_order: (Vec<String>, Vec<String>, Vec<u16>),
 }
 
 impl Argument {
     pub fn new(name: &str, description: &str, epilog: &str, credits: &str) -> Self {
-        let mut args: (HashMap<String, (String, isize)>, HashMap<char, (String, isize, String)>) =
-            (HashMap::new(), HashMap::new());
-        let exit_statuses: HashMap<u8, String> = HashMap::new();
-        let mut help_order: (Vec<String>, Vec<String>) = (vec![], vec![]);
-        args.1.insert('h', ("help".to_string(), 0, "Use this to print this help message".to_string()));
+        let mut args: (
+            HashMap<String, (String, isize)>,
+            HashMap<char, (String, isize, String)>,
+        ) = (HashMap::new(), HashMap::new());
+        let exit_statuses: HashMap<u16, String> = HashMap::new();
+        let mut help_order: (Vec<String>, Vec<String>, Vec<u16>) = (vec![], vec![], vec![]);
+        args.1.insert(
+            'h',
+            (
+                "help".to_string(),
+                0,
+                "Use this to print this help message".to_string(),
+            ),
+        );
         help_order.1.push('h'.to_string());
         Self {
             name: name.to_string(),
@@ -25,8 +37,13 @@ impl Argument {
             epilog: epilog.to_string(),
             credits: credits.to_string(),
             args,
-            help_order
+            help_order,
         }
+    }
+
+    pub fn add_exit_status(&mut self, code: u16, help: &str) {
+        self.help_order.2.push(code);
+        self.exit_statuses.insert(code, help.to_string());
     }
 
     pub fn add_arg(&mut self, placeholder: &str, args: &str, help: Option<&str>) {
@@ -36,19 +53,30 @@ impl Argument {
             match args.to_string().parse::<usize>() {
                 Ok(n) => n as isize,
                 Err(_) => {
-                    eprintln!("Error! \"args\" parameter must be either a positive integer, 0 or +");
+                    eprintln!(
+                        "Error! \"args\" parameter must be either a positive integer, 0 or +"
+                    );
                     exit(1);
                 }
             }
         };
         self.help_order.0.push(placeholder.to_string());
-        self.args.0.insert(placeholder.to_string(), (help.unwrap_or("").to_string(), nargs));
+        self.args.0.insert(
+            placeholder.to_string(),
+            (help.unwrap_or("").to_string(), nargs),
+        );
     }
 
-    pub fn add_option(&mut self, mut short: char, long: &str, parameters: &str, help: Option<&str>) {
+    pub fn add_option(
+        &mut self,
+        mut short: char,
+        long: &str,
+        parameters: &str,
+        help: Option<&str>,
+    ) {
         if short == ' ' {
             short = '-'
-        }; 
+        };
 
         let nargs = if parameters == "+" {
             -1
@@ -56,19 +84,24 @@ impl Argument {
             match parameters.to_string().parse::<usize>() {
                 Ok(n) => n as isize,
                 Err(_) => {
-                    eprintln!("Error! \"parameters\" parameter must be either a positive integer, 0 or +");
+                    eprintln!(
+                        "Error! \"parameters\" parameter must be either a positive integer, 0 or +"
+                    );
                     exit(1);
                 }
             }
         };
-        
+
         if short == '-' {
             self.help_order.1.push(long.to_string());
         } else {
             self.help_order.1.push(short.to_string());
         };
 
-        self.args.1.insert(short, (long.to_string(), nargs, help.unwrap_or("").to_string()));
+        self.args.1.insert(
+            short,
+            (long.to_string(), nargs, help.unwrap_or("").to_string()),
+        );
     }
 
     pub fn print_help(&self) {
@@ -80,10 +113,10 @@ impl Argument {
         let credits = &self.credits;
         let bottom_text = &self.epilog;
         let exit_statuses = &self.exit_statuses;
-        let mut usage = format!("Usage: {}", name); 
+        let mut usage = format!("Usage: {}", name);
         let mut pos_args_help = String::new();
         let help_orders = &self.help_order;
-        
+
         for argument in &help_orders.0 {
             let values = pos_args.get(argument).unwrap();
             let nargs = values.1;
@@ -94,21 +127,27 @@ impl Argument {
             }
             pos_args_help.push_str(format!("\n    {argument}\t\t{help}").as_str());
         }
-    
+
         usage.push_str(" [OPTIONS]\n");
 
-        help_string.push_str(format!("{}\n{}\n\nPositional Arguments:{}\n\nOptions:\n", usage, description, pos_args_help).as_str());
+        help_string.push_str(
+            format!(
+                "{}{}\n\nPositional Arguments:{}\n\nOptions:\n",
+                usage, description, pos_args_help
+            )
+            .as_str(),
+        );
 
         for option in &help_orders.1 {
             let key: char;
-            let mut field = (&' ', &(String::new(), 0isize, String::new())); 
+            let mut field = (&' ', &(String::new(), 0isize, String::new()));
             if option.len() > 1 {
                 let mut found = false;
                 for (tempkey, tempvalues) in &*options {
                     if tempvalues.0 == option.to_owned() {
                         field = (tempkey, tempvalues);
                         found = true;
-                        break
+                        break;
                     }
                 }
                 if found == false {
@@ -116,7 +155,9 @@ impl Argument {
                     exit(1);
                 }
             } else {
-                field = options.get_key_value(&option.chars().nth(0).unwrap()).unwrap()
+                field = options
+                    .get_key_value(&option.chars().nth(0).unwrap())
+                    .unwrap()
             };
             if field.0.to_owned() == '-' {
                 key = ' ';
@@ -124,14 +165,23 @@ impl Argument {
                 key = field.0.to_owned();
             };
             let values = field.1;
-            help_string.push_str(format!("    {}{}\t--{}\t\t{}\n", if key == ' '{ "" } else { "-" }, key, values.0, values.2).as_str());
+            help_string.push_str(
+                format!(
+                    "    {}{}\t--{}\t\t{}\n",
+                    if key == ' ' { "" } else { "-" },
+                    key,
+                    values.0,
+                    values.2
+                )
+                .as_str(),
+            );
         }
-        
 
         if exit_statuses.len() > 1 {
-            help_string.push_str("\n\nExit Codes:");
-            for (key, value) in &*exit_statuses {
-                help_string.push_str(format!("\n{}\t{}", key, value).as_str());
+            help_string.push_str("\n\nExit Statuses:");
+            for key in &help_orders.2 {
+                let value = exit_statuses.get(key).unwrap();
+                help_string.push_str(format!("\n    {}\t{}", key, value).as_str());
             }
         };
 
@@ -144,6 +194,8 @@ impl Argument {
         let raw_args = std::env::args();
         let mut collected_raw_args: Vec<String> = std::env::args().collect();
         collected_raw_args.remove(0);
+        let positional_arguments = &self.args.0;
+        dbg!(positional_arguments);
         let options = &self.args.1;
         let mut return_map: HashMap<String, (bool, Vec<String>)> = HashMap::new();
         for (key, val) in options.iter() {
