@@ -1,5 +1,35 @@
+//! TAAP is an argument parser made for rust, with ease of use in mind! 
+//!
+//!(TAAP is short for "totally acceptable argument parser")
+//!
+//! This crate provides the Argument struct, which has a couple of implementations which you use to
+//! create and parse args. 
+//! To get started, please take a look at the example down below, which uses this crate to create a
+//! simple program with arguments!
+//!
+//! # Adding to your project
+//! To include the crate in your project, add the following lines to your `Cargo.toml` file:
+//! ```
+//![dependencies]
+//!taap = "0.1.0"
+//! ```
+//! When you've added that, you're ready to use TAAP!
+//!
+//! # Example Usage
+//! In the following codeblock, I'll cover how to add:
+//! - a positional argument
+//! - an optional argument
+//! - some exit statuses
+//! - how to parse the args (and make use of them)
+//! (This example/codeblock is also available in the [examples
+//! folder](https://github.com/SpamixOfficial/taap-rs/examples) in the [github
+//! repository](https://github.com/SpamixOfficial/taap-rs))
+//! ```rs
+//! ```
+
 use std::{collections::HashMap, process::exit, str};
 
+/// Doc
 pub struct Argument {
     name: String,
     description: String,
