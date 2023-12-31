@@ -123,7 +123,7 @@ impl Argument {
             let help = &values.0;
             usage.push_str(format!(" {}", argument).as_str());
             if nargs > 1 {
-                usage.push_str(format!("*{} ", nargs).as_str());
+                usage.push_str(format!("*{}", nargs).as_str());
             }
             pos_args_help.push_str(format!("\n    {argument}\t\t{help}").as_str());
         }
@@ -195,7 +195,8 @@ impl Argument {
         let mut collected_raw_args: Vec<String> = std::env::args().collect();
         collected_raw_args.remove(0);
         let positional_arguments = &self.args.0;
-        dbg!(positional_arguments);
+        let mut positional_arguments_length = 0;
+        let positional_arguments_order = &self.help_order.0;
         let options = &self.args.1;
         let mut return_map: HashMap<String, (bool, Vec<String>)> = HashMap::new();
         for (key, val) in options.iter() {
@@ -207,8 +208,15 @@ impl Argument {
             };
             return_map.insert(name, (false, vec![]));
         }
+
+        for key in positional_arguments.iter() {
+            return_map.insert(key.0.to_owned(), (true, vec![]));
+            positional_arguments_length += key.1 .1 as usize;
+        } 
+
+        // handling optional arguments
         for (pos, argument) in raw_args.into_iter().enumerate() {
-            if pos == 0 {
+            if pos < positional_arguments_length + 1 && argument != "-h" && argument != "--help" {
                 continue;
             };
             if argument.len() > 1
@@ -252,11 +260,31 @@ impl Argument {
                     }
                 }
             }
-        }
+        }; 
         if return_map.get("h").unwrap().0 == true {
             self.print_help();
             exit(0);
         };
+
+        // handling positional_arguments
+        let mut current_argument_position: usize = 0;
+        for argument in positional_arguments_order {
+            let argument_length = positional_arguments.get(argument).unwrap().1 as usize;
+            if current_argument_position + argument_length > collected_raw_args.len() {
+                eprintln!("Error! Too few arguments supplied to positional argument {}", argument);
+                exit(1);
+            }
+            *return_map.get_mut(argument).unwrap() = (
+                true,
+                collected_raw_args
+                    [current_argument_position..current_argument_position + argument_length]
+                    .iter()
+                    .cloned()
+                    .collect(),
+            );
+            current_argument_position += argument_length;
+        };
+
         return_map
     }
 }
