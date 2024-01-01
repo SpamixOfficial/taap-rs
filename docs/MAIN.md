@@ -197,7 +197,7 @@ If you also want to print the help yourself, you can call the print_help() funct
 Now let's run the program, with the right arguments!
 
 ```text
-[alexander@endeavouros-9470m taap-rs]$ ./example-1 "I am BAR" -f Im_foo --no-help "I take" "Two arguments!"
+[user@the_machine taap-rs]$ ./example-1 "I am BAR" -f Im_foo --no-help "I take" "Two arguments!"
 BAR is: true
 Foo was used!
 --no-help was used with arguments:
