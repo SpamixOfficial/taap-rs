@@ -1,5 +1,7 @@
 # What is left to do?
 
-- [X] Help
-- [X] Argument Parsing
+- [ ] Argument Parsing
 
+## Argument Parsing
+
+- [ ] "Infinite arguments"
