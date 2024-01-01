@@ -198,9 +198,6 @@
 //! 
 //! ```text
 //! [alexander@endeavouros-9470m taap-rs]$ ./example-1 "I am BAR" -f Im_foo --no-help "I take" "Two arguments!"
-//!    Compiling taap v0.1.0 (/home/alexander/Documents/GitHub/taap-rs)
-//!     Finished dev [unoptimized + debuginfo] target(s) in 0.62s
-//!      Running `target/debug/taap 'I am BAR' -f Im_foo --no-help 'I take' 'Two arguments'\!''`
 //! BAR is: true
 //! Foo was used!
 //! --no-help was used with arguments:
