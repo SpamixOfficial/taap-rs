@@ -9,7 +9,7 @@ simple program with arguments!
 
 # Adding to your project
 To include the crate in your project, add the following lines to your `Cargo.toml` file:
-```
+```toml
 [dependencies]
 taap = "0.1.0"
 ```
@@ -43,9 +43,9 @@ fn main() {
 
     // Now we will add our first positional argument!
     // First we add our letter we want to use, in this case 'f', a char
-    //
+    // 
     // Next we add our long name we want to use, in this case "foo", a &str
-    //
+    // 
     // After that we add the amount of arguments the option takes. The parameter can either be:
     // * "0", for 0 arguments,
     // * A positive integer, for another amount of arguments
@@ -64,8 +64,8 @@ fn main() {
     // optional arguments, except that it doesn't take a "long name" and a "short name". Instead it
     // just takes a placeholder!
     //
-    // First I'll add my placeholder name, which should be a &str
-    //
+    // First I'll add my placeholder name, which should be a &str 
+    // 
     // Next I'll add the amount of arguments the option takes, which is the same as optional
     // arguments
     //
@@ -73,7 +73,7 @@ fn main() {
     arguments.add_arg("BAR", "1", None);
 
     // Now let's also add some exit statuses!
-    //
+    // 
     // Adding exit statuses is very useful for the end user, since if something goes wrong the user
     // will know what the code means!
     //
@@ -86,18 +86,18 @@ fn main() {
 
     // Finally, let's parse the args and make use of them!
     //
-    // We parse the args by calling parse_args(), which returns a HashMap
+    // We parse the args by calling parse_args(), which returns a HashMap<String, (bool, String)>
     // I'll explain what every part means in a second!
     //
-    // When we have parsed our args, we also want to save the result!
-    // To do this we create a new variable, and contain our parsed args in that variable
+    // When we have parsed our args, we also want to save the result! 
+    // To do this we create a new variable, and contain our parsed args in that variable 
     let parsed_arguments = arguments.parse_args();
 
     // Now let's use our arguments!
     // First, let's grab our first positional argument, named "BAR"
-    //
+    // 
     // To grab an argument, we simply just get it from our hashmap using the name we originally
-    // defined for it.
+    // defined for it. 
     // If it's an optional argument we use the short name, and if it's a positonal argument we use
     // the placeholder name
     // If it's an optional argument without a short name we instead use the long name, "no-help"
@@ -118,10 +118,10 @@ fn main() {
     // The process here is the same as the previous lines
     //
     // Let's also pass our gathered info to a function.
-    // The function needs to take &(bool, Vec) as input since foo is a borrow and foo
-    // consists of (bool, Vec)
+    // The function needs to take &(bool, Vec<String>) as input since foo is a borrow and foo
+    // consists of (bool, Vec<String>)
     //
-    // If your optional argument take no arguments, then your Vec will be an empty vector
+    // If your optional argument take no arguments, then your Vec<String> will be an empty vector
     let foo = parsed_arguments.get("f").unwrap();
     was_foo_used(foo);
 
@@ -147,7 +147,7 @@ fn main() {
     };
 }
 
-fn was_foo_used(info: &(bool, Vec)) {
+fn was_foo_used(info: &(bool, Vec<String>)) {
     // As you see here, we use info.0 to retreive if foo was used or not, which is a boolean value
     if info.0 {
         println!("Foo was used!");
