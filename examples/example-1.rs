@@ -11,7 +11,7 @@ fn main() {
     // * The description of the program
     // * The epilog, also known as the text at the bottom of the help
     // * The credits, usually your own name (or the owner's name) and the year
-    let mut arguments = taap::Argument::new("example-1", "The first example program for TAAP!", "The text at the bottom of the help!", "SpamixOfficial 2023");
+    let mut arguments = taap::Argument::new("example-1", "The first example program for TAAP!", "The text at the bottom of the help!", "SpamixOfficial 2024");
 
 
     // Now we will add our first positional argument!

@@ -1,8 +1,26 @@
 #![doc = include_str!("../docs/MAIN.md")]
+#![doc(html_playground_url = "https://play.rust-lang.org/")]
 
 use std::{collections::HashMap, process::exit, str};
 
-/// Doc
+/// The struct that actually contains all the info, and acts like the container for all commands
+/// needed
+///
+/// The Argument struct contains all info, e.g. the name, the description, all arguments added,
+/// etc.
+/// The Argument implementations are also what we use to create and modify our args!
+/// 
+/// An example of the Argument struct in use:
+/// ```rust
+/// fn main() {
+///     let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits and year");
+///     // Add some arguments and options
+///     // ...
+///     let parsed_args = arguments.parse_args();
+///     // Do something with the parsed args
+///     // ...
+/// }
+/// ```
 pub struct Argument {
     name: String,
     description: String,
@@ -16,7 +34,30 @@ pub struct Argument {
     help_order: (Vec<String>, Vec<String>, Vec<u16>),
 }
 
+/// Implementation for Argument struct 
+///
+/// Code example available in te top of the documentation, and at the home page
 impl Argument {
+    /// Returns a new Argument instance
+    ///
+    /// A functon called `new` which creates and returns an instance of the Argument struct, with
+    /// the values you input.
+    ///
+    /// | Parameter   | Type | Description                                                          |
+    /// |-------------|------|----------------------------------------------------------------------|
+    /// | name        | &str | The name of the program                                              |
+    /// | description | &str | The description of the program                                       |
+    /// | epilog      | &str | The text at the bottom of the help                                   |
+    /// | credits     | &str | The credits at the bottom of the help (often your name and the year) |
+    ///
+    /// Code Example:
+    /// ```rust
+    /// # fn main () {
+    /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
+    /// // do something with arguments
+    /// # }
+    ///
+    /// ```
     pub fn new(name: &str, description: &str, epilog: &str, credits: &str) -> Self {
         let mut args: (
             HashMap<String, (String, isize)>,
@@ -34,7 +75,7 @@ impl Argument {
         );
         help_order.1.push('h'.to_string());
         Self {
-            name: name.to_string(),
+            name: name.to_string(), 
             description: description.to_string(),
             exit_statuses,
             epilog: epilog.to_string(),
@@ -43,11 +84,63 @@ impl Argument {
             help_order,
         }
     }
+    
+    /// Add an exit status to the help page
+    ///
+    /// A function that takes an u16 and a &str as input and adds it to the help page as an exit
+    /// status
+    ///
+    /// | Parameter | Type | Description                                            |
+    /// |-----------|------|--------------------------------------------------------|
+    /// | code      | u16  | The exit code                                          |
+    /// | help      | &str | The help message on the help page fot that exit status |
+    ///
+    /// Example Code:
+    /// ```rust
+    /// # fn main() {
+    /// // first initialize a new Argument instance using the "new" function
+    /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
+    /// // Add our exit status, first the code, then the help text
+    /// arguments.add_exit_status(0, "Everything went well!");
+    /// // ... 
+    /// # }
+    /// ```
 
     pub fn add_exit_status(&mut self, code: u16, help: &str) {
         self.help_order.2.push(code);
         self.exit_statuses.insert(code, help.to_string());
     }
+
+    /// Add a positional argument
+    ///
+    /// A function that takes a placeholder &str, the amount of arguments as a &str, and a help
+    /// &str of the type Option<&str>
+    ///
+    /// The reason for the amount of args being a &str is because it doesn't only take positive
+    /// integers, it can also take "+" as an amount of arguments. 
+    /// The "+" is equal to an unspecified amount of arguments.
+    ///
+    /// The last argument is an Option<&str> because it's optional, which means you can pass None
+    /// if you don't want a help text for the argument
+    ///
+    /// | Parameter   | Type         | Description                                                         |
+    /// |-------------|--------------|---------------------------------------------------------------------|
+    /// | placeholder | &str         | The placeholder of the positional argument, meant for the help page |
+    /// | args        | &str         | The amount of arguments, can either be a positive integer or a "+"  |
+    /// | help        | Option<&str> | The help text, can either be None or Some(&str)                     |
+    ///
+    /// Code Example:
+    /// ```
+    /// # fn main() {
+    /// // first initialize a new Argument instance using the "new" function
+    /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
+    /// // Add a positonal argument to the Argument instance
+    /// arguments::add_arg("BAR", "1", Some("Some Help"));
+    /// // Add another positional argument, but this time it's "infinite"
+    /// arguments::add_arg("FOO", "+", None);
+    /// // ...
+    /// #}
+    /// ```
 
     pub fn add_arg(&mut self, placeholder: &str, args: &str, help: Option<&str>) {
         let nargs = if args == "+" {
@@ -70,17 +163,59 @@ impl Argument {
         );
     }
 
+    /// Add an optional argument
+    ///
+    /// A function that takes a short name as a char, a long name as a &str, the amount of arguments as a &str,
+    /// and a help &str of the type Option<&str>
+    ///
+    /// The short name can be a space (' ') or a dash ('-') if you only want a long name
+    ///
+    /// The long name can be an empty str (""), a space (" ") or a single/double dash ("-"/"--") 
+    /// if you only want a short name
+    ///
+    /// The reason for the amount of args being a &str is because it doesn't only take positive
+    /// integers, it can also take "+" as an amount of arguments. 
+    /// The "+" is equal to an unspecified amount of arguments.
+    ///
+    /// The last argument is an Option<&str> because it's optional, which means you can pass None
+    /// if you don't want a help text for the argument
+    ///
+    /// | Parameter | Type         | Description                                                        |
+    /// |-----------|--------------|--------------------------------------------------------------------|
+    /// | short     | char         | The short name of the optional argument                            |
+    /// | long      | &str         | The long name of the optional argument
+    /// | args      | &str         | The amount of arguments, can either be a positive integer or a "+" |
+    /// | help      | Option<&str> | The help text, can either be None or Some(&str)                    |
+    ///
+    /// Code Example:
+    /// ```
+    /// # fn main() {
+    /// // first initialize a new Argument instance using the "new" function
+    /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
+    /// // Add some optional arguments
+    /// arguments.add_option('f', "foo", "0", Some("I have a short and a long name!"));
+    /// arguments.add_option('-', "boo", "2", Some("I only have a long name"));
+    /// arguments.add_option('a', "-", "0", Some("I only have a short name"));
+    /// arguments.add_option('n', "no-help", "0", None);
+    /// #}
+    ///
+    /// // More code...
+    /// // ...
+    /// ```
+
     pub fn add_option(
         &mut self,
         mut short: char,
-        long: &str,
+        mut long: &str,
         parameters: &str,
         help: Option<&str>,
     ) {
         if short == ' ' {
             short = '-'
         };
-
+        if long.is_empty() || long == " " || long == "-" || long == "--" {
+            long = ""
+        };
         let nargs = if parameters == "+" {
             -1
         } else {
@@ -106,6 +241,32 @@ impl Argument {
             (long.to_string(), nargs, help.unwrap_or("").to_string()),
         );
     }
+    
+    /// Prints the help page for your program
+    ///
+    /// Call this function to print the help page for your program.
+    ///
+    /// The function takes no arguments
+    ///
+    /// Code Example:
+    /// ```rust
+    /// # fn main() {
+    /// // first initialize a new Argument instance using the "new" function
+    /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
+    /// // Add some optional arguments
+    /// arguments.add_option('f', "foo", "0", Some("I have a short and a long name!"));
+    /// arguments.add_option('-', "boo", "2", Some("I only have a long name"));
+    /// arguments.add_option('a', "-", "0", Some("I only have a short name"));
+    /// arguments.add_option('n', "no-help", "0", None);
+    ///
+    /// // print the help
+    /// arguments.print_help();
+    /// #}
+    /// ```
+    ///
+    /// Most of the time printing the help manually is unnecessesary since the program already
+    /// adds the optional argument 'h' and "help" automatically
+    ///
 
     pub fn print_help(&self) {
         let mut help_string = String::new();
@@ -174,9 +335,10 @@ impl Argument {
             let values = field.1;
             help_string.push_str(
                 format!(
-                    "\n    {}{}\t--{}{}\t\t{}",
+                    "\n    {}{}\t{}{}{}\t\t{}",
                     if key == ' ' { "" } else { "-" },
                     key,
+                    if values.0 == "" { "" } else { "--" }, 
                     values.0,
                     if values.1 == 0 || values.1 == 1 || values.0.is_empty() {
                         "".to_string()
@@ -203,6 +365,34 @@ impl Argument {
 
         println!("{}", help_string);
     }
+
+    /// Returns a HashMap containing the parsed arguments
+    ///
+    /// A function that takes no arguments, parses arguments passed to the program and 
+    /// returns a HashMap<String, (bool, Vec<String>)> which contains the parsed arguments
+    ///
+    /// Code Example:
+    /// ```rust
+    ///# fn main() {
+    /// // first initialize a new Argument instance using the "new" function
+    /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
+    /// // Add a positonal argument
+    /// arguments.add_arg("BAR", "0", None);
+    /// // Add some optional arguments
+    /// arguments.add_option('f', "foo", "0", Some("I have a short and a long name!"));
+    /// arguments.add_option('-', "boo", "2", Some("I only have a long name"));
+    /// arguments.add_option('a', "-", "0", Some("I only have a short name"));
+    /// arguments.add_option('n', "no-help", "0", None);
+    ///
+    /// // Now parse the arguments and save the result in a variable
+    /// let parsed_arguments = arguments.parse_args();
+    ///
+    /// // Do something with the parsed arguments
+    /// // ...
+    /// #}
+    /// ```
+    ///
+
 
     pub fn parse_args(&mut self) -> HashMap<String, (bool, Vec<String>)> {
         let raw_args = std::env::args();
