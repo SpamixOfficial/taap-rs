@@ -212,7 +212,7 @@ Two arguments!
 
 As you see, all the arguments got parsed and used correctly!
 
-### Extra info
+## Extra info
 
 If one of the arguments would have had an unspecified amount of arguments
 (an infinite amount), we would have had to terminate it using -.
@@ -226,7 +226,7 @@ If we still wanted to use a -, we would have to escape it using \\ .
 NOTE: Some shells actually uses \ as an escape character, which means you would
 have to escape the escape character (\\\\).
 
-### Final words
+## Final words
 
 You should now be ready to use TAAP!
 
