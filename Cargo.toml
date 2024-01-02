@@ -2,7 +2,10 @@
 name = "taap"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license-file = "LICENSE"
+description = "TAAP is an argument parser made for rust, with ease of use in mind"
+homepage = "https://github.com/SpamixOfficial/taap-rs"
+repository = "https://github.com/SpamixOfficial/taap-rs"
+readme = "README.md"
 
 [dependencies]
