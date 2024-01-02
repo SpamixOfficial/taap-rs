@@ -22,7 +22,7 @@ fn main() {
     // After that we add the amount of arguments the option takes. The parameter can either be:
     // * "0", for 0 arguments,
     // * A positive integer, for another amount of arguments
-    // * A "+" for an unspecified amount of arguments
+    // * A "+" for an unspecified amount of arguments, aka infinite arguments
     // (NOTE: All this needs to be &str)
     //
     // Last we add our our help for the argument, which is contained in a "Some". If you don't want

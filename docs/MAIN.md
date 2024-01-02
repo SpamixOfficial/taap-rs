@@ -49,7 +49,7 @@ fn main() {
     // After that we add the amount of arguments the option takes. The parameter can either be:
     // * "0", for 0 arguments,
     // * A positive integer, for another amount of arguments
-    // * A "+" for an unspecified amount of arguments
+    // * A "+" for an unspecified amount of arguments, aka infinite arguments
     // (NOTE: All this needs to be &str)
     //
     // Last we add our our help for the argument, which is contained in a "Some". If you don't want
@@ -160,7 +160,7 @@ fn was_foo_used(info: &(bool, Vec<String>)) {
 Now let's run our program!
 ```text 
 [user@the_machine taap-rs]$ ./example-1
-Error! Too few arguments supplied to positional argument BAR 
+Error! BAR requires 1 arguments,
 ```
 We supplied no arguments, which resulted in this output!
 
@@ -207,12 +207,22 @@ Two arguments!
 
 As you see, all the arguments got parsed and used correctly!
 
+If one of the arguments would have had an unspecified amount of arguments
+(an infinite amount), we would have had to terminate it using -.
+
+That means, that if BAR had an infinite amount of arguments
+it would have been terminated by the -f option, since the character - terminates
+the infinite argument.
+
+If we still wanted to use a -, we would have to escape it using \\ .
+
+NOTE: Some shells actually uses \ as an escape character, which means you would
+have to escape the escape character (\\\\).
+
 You should now be ready to use TAAP!
 
 If you want to read more about TAAP, there's more documentation on this page
 
 If you want to look at more examples, take a look at the [examples
 folder](https://github.com/SpamixOfficial/taap-rs/examples) in the [github
-repository](https://github.com/SpamixOfficial/taap-rs) 
-
-
+repository](https://github.com/SpamixOfficial/taap-rs)

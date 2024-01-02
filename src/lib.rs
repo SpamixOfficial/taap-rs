@@ -176,7 +176,7 @@ impl Argument {
                 format!(
                     "\n    {}{}\t--{}{}\t\t{}",
                     if key == ' ' { "" } else { "-" },
-                    key, 
+                    key,
                     values.0,
                     if values.1 == 0 || values.1 == 1 || values.0.is_empty() {
                         "".to_string()
@@ -209,7 +209,6 @@ impl Argument {
         let mut collected_raw_args: Vec<String> = std::env::args().collect();
         collected_raw_args.remove(0);
         let positional_arguments = &self.args.0;
-        let mut positional_arguments_length = 0;
         let positional_arguments_order = &self.help_order.0;
         let options = &self.args.1;
         let mut return_map: HashMap<String, (bool, Vec<String>)> = HashMap::new();
@@ -225,26 +224,41 @@ impl Argument {
 
         for key in positional_arguments.iter() {
             return_map.insert(key.0.to_owned(), (true, vec![]));
-            positional_arguments_length += key.1 .1 as usize;
         }
 
         // handling optional arguments
         for (pos, argument) in raw_args.into_iter().enumerate() {
-            if pos < positional_arguments_length + 1 && argument != "-h" && argument != "--help" {
-                continue;
-            };
+            // only parse if it's over 1 character, starts with - and 2nd character isn't -
             if argument.len() > 1
                 && argument.starts_with("-")
                 && argument.chars().nth(1).unwrap() != '-'
             {
+                // trim out the - and get characters, since options are single characters
                 for part in argument.get(1..).unwrap().chars() {
+                    // if it's in the hashmap, we know it exists, else just skip
                     if options.contains_key(&part) {
                         let options_needed = options.get(&part).unwrap().1;
                         if options_needed < 0 {
-                             
+                            let mut temp_infinite_arglist: Vec<String> = vec![];
+                            for argument2 in collected_raw_args[pos..].iter() {
+                                if argument2.starts_with("-") {
+                                    break;
+                                } else {
+                                    if argument2.starts_with(r"\") {
+                                        temp_infinite_arglist.push(argument2[1..].to_string());
+                                    } else {
+                                        temp_infinite_arglist.push(argument2.to_owned());
+                                    };
+                                };
+                            }
+                            *return_map.get_mut(&part.to_string()).unwrap() =
+                                (true, temp_infinite_arglist);
                         } else {
                             if collected_raw_args.len() < pos + options_needed as usize {
-                                eprintln!("Error! -{} requires {} arguments", &part, options_needed);
+                                eprintln!(
+                                    "Error! -{} requires {} arguments",
+                                    &part, options_needed
+                                );
                                 exit(1);
                             };
                             *return_map.get_mut(&part.to_string()).unwrap() = (
@@ -268,17 +282,37 @@ impl Argument {
                             name = part.to_string();
                         };
                         let options_needed = values.1;
-                        if collected_raw_args.len() < pos + options_needed as usize {
-                                eprintln!("Error! --{} reuires {} arguments", &part, options_needed);
+                        if options_needed < 0 {
+                            let mut temp_infinite_arglist: Vec<String> = vec![];
+                            for argument2 in collected_raw_args[pos..].iter() {
+                                if argument2.starts_with("-") {
+                                    break;
+                                } else {
+                                    if argument2.starts_with(r"\") {
+                                        temp_infinite_arglist.push(argument2[1..].to_string());
+                                    } else {
+                                        temp_infinite_arglist.push(argument2.to_owned());
+                                    };
+                                };
+                            }
+                            *return_map.get_mut(&part.to_string()).unwrap() =
+                                (true, temp_infinite_arglist);
+                        } else {
+                            if collected_raw_args.len() < pos + options_needed as usize {
+                                eprintln!(
+                                    "Error! --{} requires {} arguments",
+                                    &part, options_needed
+                                );
                                 exit(1);
+                            };
+                            *return_map.get_mut(&name).unwrap() = (
+                                true,
+                                collected_raw_args[pos..(pos + options_needed as usize)]
+                                    .iter()
+                                    .cloned()
+                                    .collect(),
+                            );
                         };
-                        *return_map.get_mut(&name).unwrap() = (
-                            true,
-                            collected_raw_args[pos..(pos + options_needed as usize)]
-                                .iter()
-                                .cloned()
-                                .collect(),
-                        );
                     }
                 }
             }
@@ -290,24 +324,40 @@ impl Argument {
 
         // handling positional_arguments
         let mut current_argument_position: usize = 0;
-        for argument in positional_arguments_order {
-            let argument_length = positional_arguments.get(argument).unwrap().1 as usize;
-            if current_argument_position + argument_length > collected_raw_args.len() {
-                eprintln!(
-                    "Error! Too few arguments supplied to positional argument {}",
-                    argument
+        for (pos, argument) in positional_arguments_order.iter().enumerate() {
+            let argument_length = positional_arguments.get(argument).unwrap().1;
+            if argument_length < 0 {
+                let mut temp_infinite_arglist: Vec<String> = vec![];
+                for argument2 in collected_raw_args[pos..].iter() {
+                    if argument2.starts_with("-") {
+                        break;
+                    } else {
+                        if argument2.starts_with(r"\") {
+                            temp_infinite_arglist.push(argument2[1..].to_string());
+                        } else {
+                            temp_infinite_arglist.push(argument2.to_owned());
+                        };
+                    };
+                }
+                *return_map.get_mut(argument).unwrap() = (true, temp_infinite_arglist);
+            } else {
+                if current_argument_position + argument_length as usize > collected_raw_args.len() {
+                    eprintln!(
+                        "Error! {} requires {} arguments",
+                        argument, positional_arguments.get(argument).unwrap().1
+                    );
+                    exit(1);
+                };
+                *return_map.get_mut(argument).unwrap() = (
+                    true,
+                    collected_raw_args[current_argument_position
+                        ..current_argument_position + argument_length as usize]
+                        .iter()
+                        .cloned()
+                        .collect(),
                 );
-                exit(1);
+                current_argument_position += argument_length as usize;
             }
-            *return_map.get_mut(argument).unwrap() = (
-                true,
-                collected_raw_args
-                    [current_argument_position..current_argument_position + argument_length]
-                    .iter()
-                    .cloned()
-                    .collect(),
-            );
-            current_argument_position += argument_length;
         }
 
         return_map
