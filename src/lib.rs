@@ -369,7 +369,7 @@ impl Argument {
     /// Returns a HashMap containing the parsed arguments
     ///
     /// A function that takes no arguments, parses arguments passed to the program and 
-    /// returns a HashMap<String, (bool, Vec<String>)> which contains the parsed arguments
+    /// returns a HashMap<String, (bool, Vec\<String\>)> which contains the parsed arguments
     ///
     /// Code Example:
     /// ```rust
