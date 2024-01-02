@@ -126,8 +126,12 @@ impl Argument {
             let help = &values.0;
             usage.push_str(format!(" {}", argument).as_str());
             if nargs > 1 {
-                usage.push_str(format!("*{}", nargs).as_str());
-            }
+                if nargs < 0 {
+                    usage.push_str("*∞");
+                } else {
+                    usage.push_str(format!("*{}", nargs).as_str());
+                };
+            };
             pos_args_help.push_str(format!("\n    {argument}\t\t{help}").as_str());
         }
 
@@ -170,12 +174,17 @@ impl Argument {
             let values = field.1;
             help_string.push_str(
                 format!(
-                    "\n    {}{}{}\t--{}{}\t\t{}",
+                    "\n    {}{}\t--{}{}\t\t{}",
                     if key == ' ' { "" } else { "-" },
-                    key,
-                    if values.1 <= 1 || key == ' ' { "".to_string() } else { format!("*{}", values.1) },
+                    key, 
                     values.0,
-                    if values.1 <= 1 || values.0.is_empty() { "".to_string() } else { format!("*{}", values.1) }, 
+                    if values.1 == 0 || values.1 == 1 || values.0.is_empty() {
+                        "".to_string()
+                    } else if values.1 < 0 {
+                        "*∞".to_string()
+                    } else {
+                        format!("*{}", values.1)
+                    },
                     values.2
                 )
                 .as_str(),
@@ -231,17 +240,21 @@ impl Argument {
                 for part in argument.get(1..).unwrap().chars() {
                     if options.contains_key(&part) {
                         let options_needed = options.get(&part).unwrap().1;
-                        if collected_raw_args.len() < pos + options_needed as usize {
-                            eprintln!("Too few options passed to -{}", &part);
-                            exit(1);
-                        }
-                        *return_map.get_mut(&part.to_string()).unwrap() = (
-                            true,
-                            collected_raw_args[pos..(pos + options_needed as usize)]
-                                .iter()
-                                .cloned()
-                                .collect(),
-                        );
+                        if options_needed < 0 {
+                             
+                        } else {
+                            if collected_raw_args.len() < pos + options_needed as usize {
+                                eprintln!("Error! -{} requires {} arguments", &part, options_needed);
+                                exit(1);
+                            };
+                            *return_map.get_mut(&part.to_string()).unwrap() = (
+                                true,
+                                collected_raw_args[pos..(pos + options_needed as usize)]
+                                    .iter()
+                                    .cloned()
+                                    .collect(),
+                            );
+                        };
                     };
                 }
             } else if argument.len() > 2 && argument.get(..2).unwrap() == "--" {
@@ -255,6 +268,10 @@ impl Argument {
                             name = part.to_string();
                         };
                         let options_needed = values.1;
+                        if collected_raw_args.len() < pos + options_needed as usize {
+                                eprintln!("Error! --{} reuires {} arguments", &part, options_needed);
+                                exit(1);
+                        };
                         *return_map.get_mut(&name).unwrap() = (
                             true,
                             collected_raw_args[pos..(pos + options_needed as usize)]
