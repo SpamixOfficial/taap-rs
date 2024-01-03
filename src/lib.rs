@@ -1,7 +1,7 @@
 #![doc = include_str!("../docs/MAIN.md")]
 #![doc(html_playground_url = "https://play.rust-lang.org/")]
 
-use std::{collections::HashMap, process::exit, str};
+use std::{collections::HashMap, process::exit, str, fmt::{self, Display}};
 
 /// The struct that actually contains all the info, and acts like the container for all commands
 /// needed
@@ -21,6 +21,7 @@ use std::{collections::HashMap, process::exit, str};
 ///     // ...
 /// }
 /// ```
+#[derive(Clone, PartialEq, Eq, Debug, Default)]
 pub struct Argument {
     name: String,
     description: String,
@@ -32,6 +33,12 @@ pub struct Argument {
         HashMap<char, (String, isize, String)>,
     ),
     help_order: (Vec<String>, Vec<String>, Vec<u16>),
+}
+
+impl Display for Argument {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{{name: {}, description: {}, epilog: {}, credits: {}}}", self.name, self.description, self.epilog, self.credits)
+    }
 }
 
 /// Implementation for Argument struct 

@@ -7,5 +7,9 @@ description = "TAAP is an argument parser made for rust, with ease of use in min
 homepage = "https://github.com/SpamixOfficial/taap-rs"
 repository = "https://github.com/SpamixOfficial/taap-rs"
 readme = "README.md"
+keywords = ["arguments", "parser"]
+categories = ["command-line-interface"]
+exclude = ["/examples", "/target", "TODO.md"]
+
 
 [dependencies]
