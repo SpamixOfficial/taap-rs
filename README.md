@@ -1,3 +1,11 @@
+# TAAP
+> Argument parsing - made easy
+
+![Crates.io Total Downloads](https://img.shields.io/crates/d/taap?style=plastic&label=Total%20Downloads)
+![Crates.io Version](https://img.shields.io/crates/v/taap?style=plastic)
+![docs.rs](https://img.shields.io/docsrs/taap?style=plastic&label=docs.rs%20status)
+![Crates.io License](https://img.shields.io/crates/l/taap?style=plastic)
+
 # What is TAAP?
 TAAP is an argument parser made for rust, with ease of use in mind!
 
