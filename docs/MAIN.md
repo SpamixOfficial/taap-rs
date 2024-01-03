@@ -22,7 +22,7 @@ In the following codeblock, I'll cover how to add:
 - some exit statuses
 - how to parse the args (and make use of them)
 (This example/codeblock is also available in the [examples
-folder](https://github.com/SpamixOfficial/taap-rs/examples) in the [github
+folder](https://github.com/SpamixOfficial/taap-rs/tree/master/examples) in the [github
 repository](https://github.com/SpamixOfficial/taap-rs))
 ```rust
 // First, import taap so we can use it
@@ -230,5 +230,5 @@ You should now be ready to use TAAP!
 If you want to read more about TAAP, there's more documentation on this page
 
 If you want to look at more examples, take a look at the [examples
-folder](https://github.com/SpamixOfficial/taap-rs/examples) in the [github
+folder](https://github.com/SpamixOfficial/taap-rs/tree/master/examples) in the [github
 repository](https://github.com/SpamixOfficial/taap-rs)

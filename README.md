@@ -16,7 +16,7 @@ create and parse args.
 To get started, please take a look at the example down below, which uses this crate to create a
 simple program with arguments!
 
-(*PSST! All this, and more is available over at the docs.rs page!*)
+(*PSST! All this, and more is available over at the [docs.rs page](https://docs.rs/taap/latest/taap/)*)
 
 # Quick Start
 ## Adding to your project
@@ -34,7 +34,7 @@ In the following codeblock, I'll cover how to add:
 - some exit statuses
 - how to parse the args (and make use of them)
 (This example/codeblock is also available in the [examples
-folder](https://github.com/SpamixOfficial/taap-rs/examples) 
+folder](https://github.com/SpamixOfficial/taap-rs/tree/master/examples) 
 ```rust
 // First, import taap so we can use it
 use taap;
@@ -241,7 +241,7 @@ You should now be ready to use TAAP!
 If you want to read more about TAAP, there's more documentation on docs.rs
 
 If you want to look at more examples, take a look at the [examples
-folder](https://github.com/SpamixOfficial/taap-rs/examples) in this repository 
+folder](https://github.com/SpamixOfficial/taap-rs/tree/master/examples) in this repository 
 
 
 # Credits
