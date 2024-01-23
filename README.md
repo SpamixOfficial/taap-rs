@@ -102,7 +102,9 @@ fn main() {
     //
     // When we have parsed our args, we also want to save the result! 
     // To do this we create a new variable, and contain our parsed args in that variable 
-    let parsed_arguments = arguments.parse_args();
+    // If we want to use a custom argument-list we can pass it using Some(std::env::Args)
+    // In this case we don't want to do that, so we pass None
+    let parsed_arguments = arguments.parse_args(None);
 
     // Now let's use our arguments!
     // First, let's grab our first positional argument, named "BAR"

@@ -375,8 +375,13 @@ impl Argument {
 
     /// Returns a HashMap containing the parsed arguments
     ///
-    /// A function that takes no arguments, parses arguments passed to the program and 
+    /// A function that takes an Option value, parses arguments passed to the program and 
     /// returns a HashMap<String, (bool, Vec\<String\>)> which contains the parsed arguments
+    ///
+    ///
+    /// | Parameter      | Type                   | Description                                                              |
+    /// |----------------|------------------------|--------------------------------------------------------------------------|
+    /// | custom_arglist | Option(std::env::Args) | A custom argument-list you can use instead of the command line arguments | 
     ///
     /// Code Example:
     /// ```rust
@@ -392,7 +397,7 @@ impl Argument {
     /// arguments.add_option('n', "no-help", "0", None);
     ///
     /// // Now parse the arguments and save the result in a variable
-    /// let parsed_arguments = arguments.parse_args();
+    /// let parsed_arguments = arguments.parse_args(None);
     ///
     /// // Do something with the parsed arguments
     /// // ...
@@ -401,8 +406,11 @@ impl Argument {
     ///
 
 
-    pub fn parse_args(&mut self) -> HashMap<String, (bool, Vec<String>)> {
-        let raw_args = std::env::args();
+    pub fn parse_args(&mut self, custom_arglist: Option<std::env::Args>) -> HashMap<String, (bool, Vec<String>)> {
+        let raw_args = match custom_arglist {
+            Some(val) => val,
+            None => std::env::args()
+        };
         let mut collected_raw_args: Vec<String> = std::env::args().collect();
         collected_raw_args.remove(0);
         let positional_arguments = &self.args.0;
