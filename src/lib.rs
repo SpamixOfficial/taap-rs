@@ -21,7 +21,7 @@ use std::{
 ///     let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits and year");
 ///     // Add some arguments and options
 ///     // ...
-///     let parsed_args = arguments.parse_args();
+///     let parsed_args = arguments.parse_args(None);
 ///     // Do something with the parsed args
 ///     // ...
 /// }
@@ -400,13 +400,13 @@ impl Argument {
 
     /// Returns a HashMap containing the parsed arguments
     ///
-    /// A function that takes an Option value, parses arguments passed to the program and 
+    /// A function that takes an Option<Vec<String>> value, parses arguments passed to the program and 
     /// returns a HashMap<String, (bool, Vec\<String\>)> which contains the parsed arguments
     ///
     ///
-    /// | Parameter      | Type                   | Description                                                              |
-    /// |----------------|------------------------|--------------------------------------------------------------------------|
-    /// | custom_arglist | Option(std::env::Args) | A custom argument-list you can use instead of the command line arguments | 
+    /// | Parameter      | Type                | Description                                                              |
+    /// |----------------|---------------------|--------------------------------------------------------------------------|
+    /// | custom_arglist | Option<Vec<String>> | A custom argument-list you can use instead of the command line arguments | 
     ///
     /// Code Example:
     /// ```rust
@@ -431,13 +431,12 @@ impl Argument {
     ///
 
 
-    pub fn parse_args(&mut self, custom_arglist: Option<std::env::Args>) -> HashMap<String, (bool, Vec<String>)> {
-        let raw_args = match custom_arglist {
-            Some(val) => val,
-            None => std::env::args()
-        };
+    pub fn parse_args(&mut self, custom_arglist: Option<Vec<String>>) -> HashMap<String, (bool, Vec<String>)> {
         let mut collected_raw_args: Vec<String> = std::env::args().collect();
-        collected_raw_args.remove(0);
+        match custom_arglist {
+            Some(val) => {collected_raw_args = val},
+            None => {collected_raw_args.remove(0);},
+        };
         let positional_arguments = &self.args.0;
         let positional_arguments_order = &self.help_order.0;
         let options = &self.args.1;
@@ -457,7 +456,7 @@ impl Argument {
         }
 
         // handling optional arguments
-        for (pos, argument) in raw_args.into_iter().enumerate() {
+        for (pos, argument) in collected_raw_args.iter().enumerate() {
             // only parse if it's over 1 character, starts with - and 2nd character isn't -
             if argument.len() > 1
                 && argument.starts_with("-")

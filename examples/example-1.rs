@@ -62,9 +62,13 @@ fn main() {
     // We parse the args by calling parse_args(), which returns a HashMap<String, (bool, String)>
     // I'll explain what every part means in a second!
     //
+    // We also pass a None value because we don't want to pass a custom argument-list.
+    //
+    // If we want to pass a custom arglist we pass a Some(Vec<String>) value
+    //
     // When we have parsed our args, we also want to save the result! 
     // To do this we create a new variable, and contain our parsed args in that variable 
-    let parsed_arguments = arguments.parse_args();
+    let parsed_arguments = arguments.parse_args(None);
 
     // Now let's use our arguments!
     // First, let's grab our first positional argument, named "BAR"
