@@ -8,11 +8,17 @@ To get started, please take a look at the example down below, which uses this cr
 simple program with arguments!
 
 # Adding to your project
-To include the crate in your project, add the following lines to your `Cargo.toml` file:
+To include the crate in your project, either add the following lines to your `Cargo.toml` file:
 ```toml
 [dependencies]
-taap = "0.1.0"
+taap = "0.1.4"
 ```
+
+or run this command in your cargo project directory:
+```
+cargo add taap
+```
+
 When you've added that, you're ready to use TAAP!
 
 # Example Usage
