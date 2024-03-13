@@ -400,13 +400,13 @@ impl Argument {
 
     /// Returns a HashMap containing the parsed arguments
     ///
-    /// A function that takes an Option<Vec<String>> value, parses arguments passed to the program and 
+    /// A function that takes an Option<Vec<String>> value, parses arguments passed to the program and
     /// returns a HashMap<String, (bool, Vec\<String\>)> which contains the parsed arguments
     ///
     ///
     /// | Parameter      | Type                | Description                                                              |
     /// |----------------|---------------------|--------------------------------------------------------------------------|
-    /// | custom_arglist | Option<Vec<String>> | A custom argument-list you can use instead of the command line arguments | 
+    /// | custom_arglist | Option<Vec<String>> | A custom argument-list you can use instead of the command line arguments |
     ///
     /// Code Example:
     /// ```rust
@@ -430,12 +430,16 @@ impl Argument {
     /// ```
     ///
 
-
-    pub fn parse_args(&mut self, custom_arglist: Option<Vec<String>>) -> HashMap<String, (bool, Vec<String>)> {
+    pub fn parse_args(
+        &mut self,
+        custom_arglist: Option<Vec<String>>,
+    ) -> HashMap<String, (bool, Vec<String>)> {
         let mut collected_raw_args: Vec<String> = std::env::args().collect();
         match custom_arglist {
-            Some(val) => {collected_raw_args = val},
-            None => {collected_raw_args.remove(0);},
+            Some(val) => collected_raw_args = val,
+            None => {
+                collected_raw_args.remove(0);
+            }
         };
         let positional_arguments = &self.args.0;
         let positional_arguments_order = &self.help_order.0;
@@ -467,23 +471,24 @@ impl Argument {
                     // if it's in the hashmap, we know it exists, else just skip
                     if options.contains_key(&part) {
                         let options_needed = options.get(&part).unwrap().1;
+                        // infinite args part
                         if options_needed < 0 {
                             let mut temp_infinite_arglist: Vec<String> = vec![];
-                            for argument2 in collected_raw_args[pos..].iter() {
+                            for argument2 in collected_raw_args[pos + 1..].iter() {
                                 if argument2.starts_with("-") {
                                     break;
+                                };
+                                if argument2.starts_with(r"\") {
+                                    temp_infinite_arglist.push(argument2[1..].to_string());
                                 } else {
-                                    if argument2.starts_with(r"\") {
-                                        temp_infinite_arglist.push(argument2[1..].to_string());
-                                    } else {
-                                        temp_infinite_arglist.push(argument2.to_owned());
-                                    };
+                                    temp_infinite_arglist.push(argument2.to_owned());
                                 };
                             }
                             *return_map.get_mut(&part.to_string()).unwrap() =
                                 (true, temp_infinite_arglist);
                         } else {
-                            if collected_raw_args.len() < pos + options_needed as usize {
+                            // Normal args go down here
+                            if collected_raw_args.len() < pos + 1 + options_needed as usize {
                                 eprintln!(
                                     "Error! -{} requires {} arguments",
                                     &part, options_needed
@@ -492,7 +497,7 @@ impl Argument {
                             };
                             *return_map.get_mut(&part.to_string()).unwrap() = (
                                 true,
-                                collected_raw_args[pos..(pos + options_needed as usize)]
+                                collected_raw_args[pos + 1..(pos + 1 + options_needed as usize)]
                                     .iter()
                                     .cloned()
                                     .collect(),
@@ -511,23 +516,24 @@ impl Argument {
                             name = part.to_string();
                         };
                         let options_needed = values.1;
+                        // infinite args handling
                         if options_needed < 0 {
                             let mut temp_infinite_arglist: Vec<String> = vec![];
-                            for argument2 in collected_raw_args[pos..].iter() {
+                            for argument2 in collected_raw_args[pos + 1..].iter() {
                                 if argument2.starts_with("-") {
                                     break;
+                                };
+                                if argument2.starts_with(r"\") {
+                                    temp_infinite_arglist.push(argument2[1..].to_string());
                                 } else {
-                                    if argument2.starts_with(r"\") {
-                                        temp_infinite_arglist.push(argument2[1..].to_string());
-                                    } else {
-                                        temp_infinite_arglist.push(argument2.to_owned());
-                                    };
+                                    temp_infinite_arglist.push(argument2.to_owned());
                                 };
                             }
                             *return_map.get_mut(&part.to_string()).unwrap() =
                                 (true, temp_infinite_arglist);
                         } else {
-                            if collected_raw_args.len() < pos + options_needed as usize {
+                            // Normal args are handled HERE
+                            if collected_raw_args.len() < pos + 1 + options_needed as usize {
                                 eprintln!(
                                     "Error! --{} requires {} arguments",
                                     &part, options_needed
@@ -536,7 +542,7 @@ impl Argument {
                             };
                             *return_map.get_mut(&name).unwrap() = (
                                 true,
-                                collected_raw_args[pos..(pos + options_needed as usize)]
+                                collected_raw_args[pos + 1..(pos + 1 + options_needed as usize)]
                                     .iter()
                                     .cloned()
                                     .collect(),
@@ -560,12 +566,11 @@ impl Argument {
                 for argument2 in collected_raw_args[pos..].iter() {
                     if argument2.starts_with("-") {
                         break;
+                    };
+                    if argument2.starts_with(r"\") {
+                        temp_infinite_arglist.push(argument2[1..].to_string());
                     } else {
-                        if argument2.starts_with(r"\") {
-                            temp_infinite_arglist.push(argument2[1..].to_string());
-                        } else {
-                            temp_infinite_arglist.push(argument2.to_owned());
-                        };
+                        temp_infinite_arglist.push(argument2.to_owned());
                     };
                 }
                 *return_map.get_mut(argument).unwrap() = (true, temp_infinite_arglist);
