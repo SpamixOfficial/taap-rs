@@ -3,6 +3,7 @@
 
 use std::{
     collections::HashMap,
+    collections::BTreeMap,
     fmt::{self, Display},
     process::exit,
     str,
@@ -30,14 +31,13 @@ use std::{
 pub struct Argument {
     name: String,
     description: String,
-    exit_statuses: HashMap<u16, String>,
+    exit_statuses: BTreeMap<u16, String>,
     epilog: String,
     credits: String,
     args: (
-        HashMap<String, (String, isize)>,
-        HashMap<char, (String, isize, String)>,
+        BTreeMap<String, (String, isize)>,
+        BTreeMap<char, (String, isize, String)>,
     ),
-    help_order: (Vec<String>, Vec<String>, Vec<u16>),
 }
 
 impl Display for Argument {
@@ -77,11 +77,10 @@ impl Argument {
     ///
     pub fn new(name: &str, description: &str, epilog: &str, credits: &str) -> Self {
         let mut args: (
-            HashMap<String, (String, isize)>,
-            HashMap<char, (String, isize, String)>,
-        ) = (HashMap::new(), HashMap::new());
-        let exit_statuses: HashMap<u16, String> = HashMap::new();
-        let mut help_order: (Vec<String>, Vec<String>, Vec<u16>) = (vec![], vec![], vec![]);
+            BTreeMap<String, (String, isize)>,
+            BTreeMap<char, (String, isize, String)>,
+        ) = (BTreeMap::new(), BTreeMap::new());
+        let exit_statuses: BTreeMap<u16, String> = BTreeMap::new();
         args.1.insert(
             'h',
             (
@@ -90,7 +89,6 @@ impl Argument {
                 "Use this to print this help message".to_string(),
             ),
         );
-        help_order.1.push('h'.to_string());
         Self {
             name: name.to_string(),
             description: description.to_string(),
@@ -98,7 +96,6 @@ impl Argument {
             epilog: epilog.to_string(),
             credits: credits.to_string(),
             args,
-            help_order,
         }
     }
 
@@ -125,7 +122,6 @@ impl Argument {
     ///
 
     pub fn add_exit_status(&mut self, code: u16, help: &str) {
-        self.help_order.2.push(code);
         self.exit_statuses.insert(code, help.to_string());
     }
 
@@ -167,14 +163,12 @@ impl Argument {
             match args.to_string().parse::<usize>() {
                 Ok(n) => n as isize,
                 Err(_) => {
-                    eprintln!(
+                    panic!(
                         "Error! \"args\" parameter must be either a positive integer, 0 or +"
                     );
-                    exit(1);
                 }
             }
         };
-        self.help_order.0.push(placeholder.to_string());
         self.args.0.insert(
             placeholder.to_string(),
             (help.unwrap_or("").to_string(), nargs),
@@ -240,18 +234,11 @@ impl Argument {
             match parameters.to_string().parse::<usize>() {
                 Ok(n) => n as isize,
                 Err(_) => {
-                    eprintln!(
+                    panic!(
                         "Error! \"parameters\" parameter must be either a positive integer, 0 or +"
                     );
-                    exit(1);
                 }
             }
-        };
-
-        if short == '-' {
-            self.help_order.1.push(long.to_string());
-        } else {
-            self.help_order.1.push(short.to_string());
         };
 
         self.args.1.insert(
@@ -296,13 +283,11 @@ impl Argument {
         let bottom_text = &self.epilog;
         let exit_statuses = &self.exit_statuses;
         let mut usage = format!("Usage: {}", name);
-        let mut pos_args_help = String::new();
-        let help_orders = &self.help_order;
-
-        for argument in &help_orders.0 {
-            let values = pos_args.get(argument).unwrap();
-            let nargs = values.1;
-            let help = &values.0;
+        let mut pos_args_help = String::new(); 
+        for values in pos_args.iter() {
+            let argument = values.0;
+            let nargs = values.1.1;
+            let help = &values.1.0;
             usage.push_str(format!(" {}", argument).as_str());
             if nargs != 1 {
                 if nargs < 0 {
@@ -330,28 +315,9 @@ impl Argument {
             .as_str(),
         );
 
-        for option in &help_orders.1 {
+        for field in options.iter() { 
             let key: char;
-            let mut field = (&' ', &(String::new(), 0isize, String::new()));
-            if option.len() > 1 {
-                let mut found = false;
-                for (tempkey, tempvalues) in &*options {
-                    if tempvalues.0 == option.to_owned() {
-                        field = (tempkey, tempvalues);
-                        found = true;
-                        break;
-                    }
-                }
-                if found == false {
-                    eprintln!("Exception, couldn't get order of value in help message");
-                    exit(1);
-                }
-            } else {
-                field = options
-                    .get_key_value(&option.chars().nth(0).unwrap())
-                    .unwrap()
-            };
-            if field.0.to_owned() == '-' {
+            if field.0 == &'-' {
                 key = ' ';
             } else {
                 key = field.0.to_owned();
@@ -387,10 +353,7 @@ impl Argument {
 
         if exit_statuses.len() > 1 {
             help_string.push_str("\n\nExit Statuses:");
-            for key in &help_orders.2 {
-                let value = exit_statuses.get(key).unwrap();
-                help_string.push_str(format!("\n    {}\t{}", key, value).as_str());
-            }
+            exit_statuses.iter().for_each(|(key, value)| help_string.push_str(format!("\n    {}\t{}", key, value).as_str()));
         };
 
         help_string.push_str(format!("\n\n{}\n{}", bottom_text, credits).as_str());
@@ -442,7 +405,6 @@ impl Argument {
             }
         };
         let positional_arguments = &self.args.0;
-        let positional_arguments_order = &self.help_order.0;
         let options = &self.args.1;
         let mut return_map: HashMap<String, (bool, Vec<String>)> = HashMap::new();
         for (key, val) in options.iter() {
@@ -559,31 +521,34 @@ impl Argument {
 
         // handling positional_arguments
         let mut current_argument_position: usize = 0;
-        for (pos, argument) in positional_arguments_order.iter().enumerate() {
-            let argument_length = positional_arguments.get(argument).unwrap().1;
+        for (pos, (key, value)) in positional_arguments.iter().enumerate() {
+            let argument_length = value.1;
             if argument_length < 0 {
                 let mut temp_infinite_arglist: Vec<String> = vec![];
-                for argument2 in collected_raw_args[pos..].iter() {
-                    if argument2.starts_with("-") {
+                for argument in collected_raw_args[pos..].iter() {
+                    if argument.starts_with("-") {
                         break;
                     };
-                    if argument2.starts_with(r"\") {
-                        temp_infinite_arglist.push(argument2[1..].to_string());
+                    if argument.starts_with(r"\") {
+                        temp_infinite_arglist.push(argument[1..].to_string());
                     } else {
-                        temp_infinite_arglist.push(argument2.to_owned());
+                        temp_infinite_arglist.push(argument.to_owned());
                     };
                 }
-                *return_map.get_mut(argument).unwrap() = (true, temp_infinite_arglist);
+                *return_map.get_mut(key).unwrap() = (true, temp_infinite_arglist);
             } else {
                 if current_argument_position + argument_length as usize > collected_raw_args.len() {
                     eprintln!(
                         "Error! {} requires {} arguments",
-                        argument,
-                        positional_arguments.get(argument).unwrap().1
+                        key,
+                        match positional_arguments.get(key) {
+                            Some(val) => val.1,
+                            None  => panic!("Panic! Key \"{}\" non-existant!", key)
+                        }
                     );
                     exit(1);
                 };
-                *return_map.get_mut(argument).unwrap() = (
+                *return_map.get_mut(key).unwrap() = (
                     true,
                     collected_raw_args[current_argument_position
                         ..current_argument_position + argument_length as usize]

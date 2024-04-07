@@ -42,9 +42,6 @@ In the following codeblock, I'll cover how to add:
 (This example/codeblock is also available in the [examples
 folder](https://github.com/SpamixOfficial/taap-rs/tree/master/examples) 
 ```rust
-// First, import taap so we can use it
-use taap;
-
 fn main() {
     // Next, in the main function, create a MUTABLE variable using Argument::new()
     let mut arguments = taap::Argument::new("example-1", "The first example program for TAAP!", "The text at the bottom of the help!", "SpamixOfficial 2023");

@@ -31,9 +31,6 @@ In the following codeblock, I'll cover how to add:
 folder](https://github.com/SpamixOfficial/taap-rs/tree/master/examples) in the [github
 repository](https://github.com/SpamixOfficial/taap-rs))
 ```rust
-// First, import taap so we can use it
-use taap;
-
 fn main() {
     // Next, in the main function, create a MUTABLE variable with a fitting name, like arguments!
     // It is very important the variable is mutable because we will need to modify values in it
