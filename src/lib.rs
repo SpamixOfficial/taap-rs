@@ -2,12 +2,99 @@
 #![doc(html_playground_url = "https://play.rust-lang.org/")]
 
 use std::{
-    collections::HashMap,
     collections::BTreeMap,
     fmt::{self, Display},
     process::exit,
     str,
 };
+
+#[cfg(test)]
+mod tests {
+    use crate::Argument;
+    use std::collections::BTreeMap;
+    
+    // test of "new" function
+    #[test]
+    fn new() {
+        let mut args: (
+            BTreeMap<String, (String, isize)>,
+            BTreeMap<char, (String, isize, String)>,
+        ) = (BTreeMap::new(), BTreeMap::new());
+
+        let exit_statuses: BTreeMap<u16, String> = BTreeMap::new();
+
+        args.1.insert(
+            'h',
+            (
+                "help".to_string(),
+                0,
+                "Use this to print this help message".to_string(),
+            ),
+        );
+
+        let expected_test_obj = Argument {
+            name: String::from("Hello"),
+            description: String::from("World"),
+            exit_statuses,
+            epilog: String::from("From"),
+            credits: String::from("TAAP"),
+            args,
+        };
+
+        let result_test_obj = Argument::new("Hello", "World", "From", "TAAP");
+
+        assert_eq!(expected_test_obj, result_test_obj);
+    }
+
+    // test of "add_exit_status" function
+    #[test]
+    fn exit_status() {
+        let mut expected_test_obj: BTreeMap<String, (bool, Vec<String>)> = BTreeMap::new();
+        
+        expected_test_obj.insert("h".to_string(), (false, vec![]));
+
+        let mut argument_test_obj = Argument::new("Hello", "World", "From", "TAAP");
+        
+        argument_test_obj.add_exit_status(0, "Everything went well!");
+        let result_test_obj = argument_test_obj.parse_args(None);
+
+        assert_eq!(expected_test_obj, result_test_obj);
+    }
+
+    // test of "add_option" function
+    #[test]
+    fn options() {
+        let mut expected_test_obj: BTreeMap<String, (bool, Vec<String>)> = BTreeMap::new();
+        
+        expected_test_obj.insert("f".to_string(), (false, vec![]));
+        expected_test_obj.insert("h".to_string(), (false, vec![]));
+
+        let mut argument_test_obj = Argument::new("Hello", "World", "From", "TAAP");
+        
+        argument_test_obj.add_option('f', "foo", "0", None);
+        let result_test_obj = argument_test_obj.parse_args(None);
+
+        assert_eq!(expected_test_obj, result_test_obj);
+    }
+    
+    // test of "add_arg" function
+    #[test]
+    fn args() {
+        let mut expected_test_obj: BTreeMap<String, (bool, Vec<String>)> = BTreeMap::new();
+        
+        expected_test_obj.insert("GOOD BYE".to_string(), (true, vec![]));
+        expected_test_obj.insert("HELLO WORLD".to_string(), (true, vec![]));
+        expected_test_obj.insert("h".to_string(), (false, vec![]));
+
+        let mut argument_test_obj = Argument::new("Hello", "World", "From", "TAAP");
+
+        argument_test_obj.add_arg("HELLO WORLD", "0", None);
+        argument_test_obj.add_arg("GOOD BYE", "+", Some("Some help!"));
+        let result_test_obj = argument_test_obj.parse_args(None);
+
+        assert_eq!(expected_test_obj, result_test_obj);
+    }
+}
 
 /// The struct that actually contains all the info, and acts like the container for all commands
 /// needed
@@ -17,7 +104,7 @@ use std::{
 /// The Argument implementations are also what we use to create and modify our args!
 ///
 /// An example of the Argument struct in use:
-/// ```rust
+/// ```no_run
 /// fn main() {
 ///     let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits and year");
 ///     // Add some arguments and options
@@ -60,12 +147,12 @@ impl Argument {
     /// the values you input.
     ///
     /// Code Example:
-    /// ```rust
-    /// # fn main () {
+    /// ```no_run
+    /// fn main () {
     /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
     /// // do something with arguments
-    /// # }
-    ///
+    /// 
+    /// }
     /// ```
     ///
     /// | Parameter   | Type | Description                                                          |
@@ -105,14 +192,14 @@ impl Argument {
     /// status
     ///
     /// Code Example:
-    /// ```rust
-    /// # fn main() {
+    /// ```no_run
+    /// fn main() {
     /// // first initialize a new Argument instance using the "new" function
     /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
     /// // Add our exit status, first the code, then the help text
     /// arguments.add_exit_status(0, "Everything went well!");
     /// // ...
-    /// # }
+    /// }
     /// ```
     ///
     /// | Parameter | Type | Description                                            |
@@ -138,16 +225,16 @@ impl Argument {
     /// if you don't want a help text for the argument
     ///
     /// Code Example:
-    /// ```
-    /// # fn main() {
+    /// ```no_run
+    /// fn main() {
     /// // first initialize a new Argument instance using the "new" function
     /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
     /// // Add a positonal argument to the Argument instance
-    /// arguments::add_arg("BAR", "1", Some("Some Help"));
+    /// arguments.add_arg("BAR", "1", Some("Some Help"));
     /// // Add another positional argument, but this time it's "infinite"
-    /// arguments::add_arg("FOO", "+", None);
+    /// arguments.add_arg("FOO", "+", None);
     /// // ...
-    /// #}
+    /// }
     /// ```
     ///
     /// | Parameter   | Type         | Description                                                         |
@@ -163,9 +250,7 @@ impl Argument {
             match args.to_string().parse::<usize>() {
                 Ok(n) => n as isize,
                 Err(_) => {
-                    panic!(
-                        "Error! \"args\" parameter must be either a positive integer, 0 or +"
-                    );
+                    panic!("Error! \"args\" parameter must be either a positive integer, 0 or +");
                 }
             }
         };
@@ -193,8 +278,8 @@ impl Argument {
     /// if you don't want a help text for the argument
     ///
     /// Code Example:
-    /// ```
-    /// # fn main() {
+    /// ```no_run
+    /// fn main() {
     /// // first initialize a new Argument instance using the "new" function
     /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
     /// // Add some optional arguments
@@ -202,10 +287,11 @@ impl Argument {
     /// arguments.add_option('-', "boo", "2", Some("I only have a long name"));
     /// arguments.add_option('a', "-", "0", Some("I only have a short name"));
     /// arguments.add_option('n', "no-help", "0", None);
-    /// #}
+    /// 
     ///
     /// // More code...
     /// // ...
+    /// }
     /// ```
     ///
     /// | Parameter | Type         | Description                                                        |
@@ -254,8 +340,8 @@ impl Argument {
     /// The function takes no arguments
     ///
     /// Code Example:
-    /// ```rust
-    /// # fn main() {
+    /// ```no_run
+    /// fn main() {
     /// // first initialize a new Argument instance using the "new" function
     /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
     /// // Add some optional arguments
@@ -266,7 +352,7 @@ impl Argument {
     ///
     /// // print the help
     /// arguments.print_help();
-    /// #}
+    /// }
     /// ```
     ///
     /// Most of the time printing the help manually is unnecessesary since the program already
@@ -283,11 +369,11 @@ impl Argument {
         let bottom_text = &self.epilog;
         let exit_statuses = &self.exit_statuses;
         let mut usage = format!("Usage: {}", name);
-        let mut pos_args_help = String::new(); 
+        let mut pos_args_help = String::new();
         for values in pos_args.iter() {
             let argument = values.0;
-            let nargs = values.1.1;
-            let help = &values.1.0;
+            let nargs = values.1 .1;
+            let help = &values.1 .0;
             usage.push_str(format!(" {}", argument).as_str());
             if nargs != 1 {
                 if nargs < 0 {
@@ -315,7 +401,7 @@ impl Argument {
             .as_str(),
         );
 
-        for field in options.iter() { 
+        for field in options.iter() {
             let key: char;
             if field.0 == &'-' {
                 key = ' ';
@@ -353,7 +439,9 @@ impl Argument {
 
         if exit_statuses.len() > 1 {
             help_string.push_str("\n\nExit Statuses:");
-            exit_statuses.iter().for_each(|(key, value)| help_string.push_str(format!("\n    {}\t{}", key, value).as_str()));
+            exit_statuses.iter().for_each(|(key, value)| {
+                help_string.push_str(format!("\n    {}\t{}", key, value).as_str())
+            });
         };
 
         help_string.push_str(format!("\n\n{}\n{}", bottom_text, credits).as_str());
@@ -372,8 +460,8 @@ impl Argument {
     /// | custom_arglist | Option<Vec<String>> | A custom argument-list you can use instead of the command line arguments |
     ///
     /// Code Example:
-    /// ```rust
-    ///# fn main() {
+    /// ```no_run
+    /// fn main() {
     /// // first initialize a new Argument instance using the "new" function
     /// let mut arguments = taap::Argument::new("Name", "Description", "Epilog, text at the bottom", "Credits");
     /// // Add a positonal argument
@@ -389,14 +477,14 @@ impl Argument {
     ///
     /// // Do something with the parsed arguments
     /// // ...
-    /// #}
+    /// }
     /// ```
     ///
 
     pub fn parse_args(
         &mut self,
         custom_arglist: Option<Vec<String>>,
-    ) -> HashMap<String, (bool, Vec<String>)> {
+    ) -> BTreeMap<String, (bool, Vec<String>)> {
         let mut collected_raw_args: Vec<String> = std::env::args().collect();
         match custom_arglist {
             Some(val) => collected_raw_args = val,
@@ -406,7 +494,7 @@ impl Argument {
         };
         let positional_arguments = &self.args.0;
         let options = &self.args.1;
-        let mut return_map: HashMap<String, (bool, Vec<String>)> = HashMap::new();
+        let mut return_map: BTreeMap<String, (bool, Vec<String>)> = BTreeMap::new();
         for (key, val) in options.iter() {
             let name: String;
             if key.to_owned() == '-' {
@@ -543,7 +631,7 @@ impl Argument {
                         key,
                         match positional_arguments.get(key) {
                             Some(val) => val.1,
-                            None  => panic!("Panic! Key \"{}\" non-existant!", key)
+                            None => panic!("Panic! Key \"{}\" non-existant!", key),
                         }
                     );
                     exit(1);

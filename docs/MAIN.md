@@ -15,7 +15,7 @@ taap = "0.1.4"
 ```
 
 or run this command in your cargo project directory:
-```
+```sh
 cargo add taap
 ```
 
@@ -30,7 +30,7 @@ In the following codeblock, I'll cover how to add:
 (This example/codeblock is also available in the [examples
 folder](https://github.com/SpamixOfficial/taap-rs/tree/master/examples) in the [github
 repository](https://github.com/SpamixOfficial/taap-rs))
-```rust
+```no_run
 fn main() {
     // Next, in the main function, create a MUTABLE variable with a fitting name, like arguments!
     // It is very important the variable is mutable because we will need to modify values in it
